@@ -1,0 +1,29 @@
+service: movers-shakers-scraper-trigger
+
+provider:
+  name: aws
+  runtime: python3.10
+  stage: ${opt:stage, 'prod'} #defaults to prod if a stage is not found
+  region: ${env:AWS_REGION, 'us-east-2'} #Uses the environment if set in your AWS CLI credentials, otherwise uses us-east-1 (N. Virginia). Feel free to manually set
+  profile: chapman
+  ecr:
+    images:
+      trigger_img:
+        uri: 202291438500.dkr.ecr.us-east-2.amazonaws.com/movers-shakers-scraper-trigger:latest
+  iam: #This adds administrator access to S3. Feel free to restrict or add additional permissions as needed
+    role:
+      statements:
+        - Effect: "Allow"
+          Action: "*"
+          Resource: "*"
+functions:
+  demo: #<<< set the name of the function here on this line
+    name: lambda_movers-shakers-scraper-trigger
+    description: "Triggering fargate instance for scraping"
+    timeout: 900 #how long it can be allowed to run in seconds.
+    memorySize: 2048 #Memory in MB. The more memory used the more a user gets billed. Once you have tested your function, you will get a memory used value. Set it around 500MB higher than that
+    image: trigger_img #this references the image name under ecr in the provider section
+    events:
+      - schedule:
+          rate: cron(0 14 * * ? *)  # 7 AM MST (UTC−7)
+          enabled: true

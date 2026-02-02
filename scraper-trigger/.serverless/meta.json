@@ -1,0 +1,682 @@
+{
+  "/Users/chapmanbeaird/Documents/PrimalScraper/scraper-trigger/serverless.yml": {
+    "versionFramework": "4.17.2",
+    "servicePath": "/Users/chapmanbeaird/Documents/PrimalScraper/scraper-trigger/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "scraper-trigger",
+      "provider": {
+        "name": "aws",
+        "runtime": "python3.10",
+        "stage": "prod",
+        "region": "us-east-2",
+        "profile": "chapman",
+        "ecr": {
+          "images": {
+            "trigger_img": {
+              "uri": "202291438500.dkr.ecr.us-east-2.amazonaws.com/scraper-trigger:latest"
+            }
+          }
+        },
+        "iam": {
+          "role": {
+            "statements": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "*"
+                ],
+                "Resource": "*"
+              }
+            ]
+          }
+        },
+        "versionFunctions": true,
+        "compiledCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "DemoLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/lambda_scraper-trigger"
+              }
+            },
+            "IamRoleLambdaExecution": {
+              "Type": "AWS::IAM::Role",
+              "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [
+                          "lambda.amazonaws.com"
+                        ]
+                      },
+                      "Action": [
+                        "sts:AssumeRole"
+                      ]
+                    }
+                  ]
+                },
+                "Policies": [
+                  {
+                    "PolicyName": {
+                      "Fn::Join": [
+                        "-",
+                        [
+                          "scraper-trigger",
+                          "prod",
+                          "lambda"
+                        ]
+                      ]
+                    },
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogStream",
+                            "logs:CreateLogGroup",
+                            "logs:TagResource"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambda_scraper-trigger:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambda_scraper-trigger:*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "*"
+                          ],
+                          "Resource": "*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "Path": "/",
+                "RoleName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "scraper-trigger",
+                      "prod",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "lambdaRole"
+                    ]
+                  ]
+                }
+              }
+            },
+            "DemoLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "ImageUri": "202291438500.dkr.ecr.us-east-2.amazonaws.com/scraper-trigger@sha256:492f58544834b803d64679b9a1548a1c559449cd23a8003d8edff3cc4f6c3650"
+                },
+                "PackageType": "Image",
+                "FunctionName": "lambda_scraper-trigger",
+                "MemorySize": 2048,
+                "Timeout": 900,
+                "Description": "Triggering fargate instance for scraping",
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "DemoLogGroup"
+              ]
+            },
+            "DemoLambdaVersion8rbh3TCuizIu71xMxkx0QwNh6PDNVQyffM1uAOYi7yY": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "DemoLambdaFunction"
+                },
+                "CodeSha256": "492f58544834b803d64679b9a1548a1c559449cd23a8003d8edff3cc4f6c3650",
+                "Description": "Triggering fargate instance for scraping"
+              }
+            },
+            "DemoEventsRuleSchedule1": {
+              "Type": "AWS::Events::Rule",
+              "Properties": {
+                "ScheduleExpression": "cron(0 14 * * ? *)",
+                "State": "ENABLED",
+                "Targets": [
+                  {
+                    "Arn": {
+                      "Fn::GetAtt": [
+                        "DemoLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "Id": "demoSchedule"
+                  }
+                ]
+              }
+            },
+            "DemoLambdaPermissionEventsRuleSchedule1": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "DemoLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "events.amazonaws.com",
+                "SourceArn": {
+                  "Fn::GetAtt": [
+                    "DemoEventsRuleSchedule1",
+                    "Arn"
+                  ]
+                }
+              }
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": "serverless-framework-deployments-us-east-2-16c6abd8-093f",
+              "Export": {
+                "Name": "sls-scraper-trigger-prod-ServerlessDeploymentBucketName"
+              }
+            },
+            "DemoLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "DemoLambdaVersion8rbh3TCuizIu71xMxkx0QwNh6PDNVQyffM1uAOYi7yY"
+              },
+              "Export": {
+                "Name": "sls-scraper-trigger-prod-DemoLambdaFunctionQualifiedArn"
+              }
+            }
+          }
+        },
+        "vpc": {}
+      },
+      "functions": {
+        "demo": {
+          "name": "lambda_scraper-trigger",
+          "description": "Triggering fargate instance for scraping",
+          "timeout": 900,
+          "memorySize": 2048,
+          "image": "trigger_img",
+          "events": [
+            {
+              "schedule": {
+                "rate": [
+                  "cron(0 14 * * ? *)"
+                ],
+                "enabled": true
+              }
+            }
+          ],
+          "package": {},
+          "memory": 2048,
+          "vpc": {},
+          "versionLogicalId": "DemoLambdaVersion8rbh3TCuizIu71xMxkx0QwNh6PDNVQyffM1uAOYi7yY"
+        }
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "python3.10",
+      "stage": "prod",
+      "region": "us-east-2",
+      "profile": "chapman",
+      "ecr": {
+        "images": {
+          "trigger_img": {
+            "uri": "202291438500.dkr.ecr.us-east-2.amazonaws.com/scraper-trigger:latest"
+          }
+        }
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      },
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "DemoLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/lambda_scraper-trigger"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "scraper-trigger",
+                        "prod",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambda_scraper-trigger:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambda_scraper-trigger:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "*"
+                        ],
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "scraper-trigger",
+                    "prod",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "DemoLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "ImageUri": "202291438500.dkr.ecr.us-east-2.amazonaws.com/scraper-trigger@sha256:492f58544834b803d64679b9a1548a1c559449cd23a8003d8edff3cc4f6c3650"
+              },
+              "PackageType": "Image",
+              "FunctionName": "lambda_scraper-trigger",
+              "MemorySize": 2048,
+              "Timeout": 900,
+              "Description": "Triggering fargate instance for scraping",
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "DemoLogGroup"
+            ]
+          },
+          "DemoLambdaVersion8rbh3TCuizIu71xMxkx0QwNh6PDNVQyffM1uAOYi7yY": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "DemoLambdaFunction"
+              },
+              "CodeSha256": "492f58544834b803d64679b9a1548a1c559449cd23a8003d8edff3cc4f6c3650",
+              "Description": "Triggering fargate instance for scraping"
+            }
+          },
+          "DemoEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "cron(0 14 * * ? *)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "DemoLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "demoSchedule"
+                }
+              ]
+            }
+          },
+          "DemoLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "DemoLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "DemoEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-us-east-2-16c6abd8-093f",
+            "Export": {
+              "Name": "sls-scraper-trigger-prod-ServerlessDeploymentBucketName"
+            }
+          },
+          "DemoLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "DemoLambdaVersion8rbh3TCuizIu71xMxkx0QwNh6PDNVQyffM1uAOYi7yY"
+            },
+            "Export": {
+              "Name": "sls-scraper-trigger-prod-DemoLambdaFunctionQualifiedArn"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "service: scraper-trigger\n\nprovider:\n  name: aws\n  runtime: python3.10\n  stage: ${opt:stage, 'prod'} #defaults to prod if a stage is not found\n  region: ${env:AWS_REGION, 'us-east-2'} #Uses the environment if set in your AWS CLI credentials, otherwise uses us-east-1 (N. Virginia). Feel free to manually set\n  profile: chapman\n  ecr:\n    images:\n      trigger_img:\n        uri: 202291438500.dkr.ecr.us-east-2.amazonaws.com/scraper-trigger:latest\n  iam: #This adds administrator access to S3. Feel free to restrict or add additional permissions as needed\n    role:\n      statements:\n        - Effect: \"Allow\"\n          Action: \"*\"\n          Resource: \"*\"\nfunctions:\n  demo: #<<< set the name of the function here on this line\n    name: lambda_scraper-trigger\n    description: \"Triggering fargate instance for scraping\"\n    timeout: 900 #how long it can be allowed to run in seconds.\n    memorySize: 2048 #Memory in MB. The more memory used the more a user gets billed. Once you have tested your function, you will get a memory used value. Set it around 500MB higher than that\n    image: trigger_img #this references the image name under ecr in the provider section\n    events:\n      - schedule:\n          rate: cron(0 14 * * ? *)  # 7 AM MST (UTC−7)\n          enabled: true\n",
+    "command": [
+      "deploy"
+    ],
+    "options": {
+      "aws-profile": "default"
+    },
+    "orgId": "ea6f6a09-9deb-40c1-b469-28dc78ea5af9",
+    "orgName": "pirawna",
+    "userId": "f7353vZkTzxDC9TmhZ",
+    "userName": "pirawna",
+    "serviceProviderAwsAccountId": "202291438500",
+    "serviceProviderAwsCfStackName": "scraper-trigger-prod",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-2:202291438500:stack/scraper-trigger-prod/81fdba40-6998-11f0-a7b6-025545e5f8b5",
+    "serviceProviderAwsCfStackCreated": "2025-07-25T20:46:58.626Z",
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": "CREATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "DemoLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:202291438500:function:lambda_scraper-trigger:1",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-scraper-trigger-prod-DemoLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-us-east-2-16c6abd8-093f",
+        "ExportName": "sls-scraper-trigger-prod-ServerlessDeploymentBucketName"
+      }
+    ],
+    "compiledCloudFormationTemplate": {
+      "AWSTemplateFormatVersion": "2010-09-09",
+      "Description": "The AWS CloudFormation template for this Serverless application",
+      "Resources": {
+        "DemoLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/lambda_scraper-trigger"
+          }
+        },
+        "IamRoleLambdaExecution": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [
+                      "lambda.amazonaws.com"
+                    ]
+                  },
+                  "Action": [
+                    "sts:AssumeRole"
+                  ]
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "scraper-trigger",
+                      "prod",
+                      "lambda"
+                    ]
+                  ]
+                },
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:CreateLogStream",
+                        "logs:CreateLogGroup",
+                        "logs:TagResource"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambda_scraper-trigger:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:PutLogEvents"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambda_scraper-trigger:*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "*"
+                      ],
+                      "Resource": "*"
+                    }
+                  ]
+                }
+              }
+            ],
+            "Path": "/",
+            "RoleName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "scraper-trigger",
+                  "prod",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  "lambdaRole"
+                ]
+              ]
+            }
+          }
+        },
+        "DemoLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "ImageUri": "202291438500.dkr.ecr.us-east-2.amazonaws.com/scraper-trigger@sha256:492f58544834b803d64679b9a1548a1c559449cd23a8003d8edff3cc4f6c3650"
+            },
+            "PackageType": "Image",
+            "FunctionName": "lambda_scraper-trigger",
+            "MemorySize": 2048,
+            "Timeout": 900,
+            "Description": "Triggering fargate instance for scraping",
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "DemoLogGroup"
+          ]
+        },
+        "DemoLambdaVersion8rbh3TCuizIu71xMxkx0QwNh6PDNVQyffM1uAOYi7yY": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "DemoLambdaFunction"
+            },
+            "CodeSha256": "492f58544834b803d64679b9a1548a1c559449cd23a8003d8edff3cc4f6c3650",
+            "Description": "Triggering fargate instance for scraping"
+          }
+        },
+        "DemoEventsRuleSchedule1": {
+          "Type": "AWS::Events::Rule",
+          "Properties": {
+            "ScheduleExpression": "cron(0 14 * * ? *)",
+            "State": "ENABLED",
+            "Targets": [
+              {
+                "Arn": {
+                  "Fn::GetAtt": [
+                    "DemoLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Id": "demoSchedule"
+              }
+            ]
+          }
+        },
+        "DemoLambdaPermissionEventsRuleSchedule1": {
+          "Type": "AWS::Lambda::Permission",
+          "Properties": {
+            "FunctionName": {
+              "Fn::GetAtt": [
+                "DemoLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Action": "lambda:InvokeFunction",
+            "Principal": "events.amazonaws.com",
+            "SourceArn": {
+              "Fn::GetAtt": [
+                "DemoEventsRuleSchedule1",
+                "Arn"
+              ]
+            }
+          }
+        }
+      },
+      "Outputs": {
+        "ServerlessDeploymentBucketName": {
+          "Value": "serverless-framework-deployments-us-east-2-16c6abd8-093f",
+          "Export": {
+            "Name": "sls-scraper-trigger-prod-ServerlessDeploymentBucketName"
+          }
+        },
+        "DemoLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "DemoLambdaVersion8rbh3TCuizIu71xMxkx0QwNh6PDNVQyffM1uAOYi7yY"
+          },
+          "Export": {
+            "Name": "sls-scraper-trigger-prod-DemoLambdaFunctionQualifiedArn"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,264 @@
+{
+  "service": {
+    "service": "daily-movers-shakers-scraper",
+    "serviceObject": {
+      "name": "daily-movers-shakers-scraper"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "python3.10",
+      "stage": "prod",
+      "region": "us-east-2",
+      "profile": "chapman",
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      },
+      "ecr": {
+        "images": {
+          "my-task": {
+            "path": "./",
+            "platform": "linux/amd64"
+          }
+        }
+      },
+      "vpc": {
+        "securityGroupIds": [
+          "sg-01fdd78a401e81cbe"
+        ],
+        "subnetIds": [
+          "subnet-0c710cf5cf5cc2c4d"
+        ]
+      },
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "FargateTaskDefinition": {
+            "Type": "AWS::ECS::TaskDefinition",
+            "Properties": {
+              "Family": "daily-movers-shakers-scraper",
+              "Cpu": "4096",
+              "Memory": "10240",
+              "NetworkMode": "awsvpc",
+              "RequiresCompatibilities": [
+                "FARGATE"
+              ],
+              "ExecutionRoleArn": {
+                "Fn::GetAtt": [
+                  "ECSExecutionRole",
+                  "Arn"
+                ]
+              },
+              "TaskRoleArn": {
+                "Fn::GetAtt": [
+                  "ECSExecutionRole",
+                  "Arn"
+                ]
+              },
+              "ContainerDefinitions": [
+                {
+                  "Name": "my-task-container",
+                  "Image": {
+                    "Fn::Sub": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/daily-movers-shakers-scraper-prod:latest"
+                  },
+                  "Essential": true,
+                  "Command": [
+                    "python3",
+                    "test.py"
+                  ],
+                  "LogConfiguration": {
+                    "LogDriver": "awslogs",
+                    "Options": {
+                      "awslogs-create-group": "true",
+                      "awslogs-group": "/ecs/daily-movers-shakers-scraper",
+                      "awslogs-region": "us-east-2",
+                      "awslogs-stream-prefix": "ecs",
+                      "max-buffer-size": "25m"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "ECSExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "ecs-tasks.amazonaws.com"
+                      ]
+                    },
+                    "Action": "sts:AssumeRole"
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": "ECSTaskExecutionRolePolicy",
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "ecr:GetDownloadUrlForLayer",
+                          "ecr:BatchGetImage",
+                          "ecr:GetAuthorizationToken",
+                          "logs:CreateLogStream",
+                          "logs:PutLogEvents",
+                          "logs:CreateLogGroup",
+                          "s3:GetObject",
+                          "s3:ListBucket"
+                        ],
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-us-east-2-16c6abd8-093f",
+            "Export": {
+              "Name": "sls-daily-movers-shakers-scraper-prod-ServerlessDeploymentBucketName"
+            }
+          }
+        }
+      }
+    },
+    "pluginsData": {},
+    "functions": {},
+    "resources": {
+      "Resources": {
+        "FargateTaskDefinition": {
+          "Type": "AWS::ECS::TaskDefinition",
+          "Properties": {
+            "Family": "daily-movers-shakers-scraper",
+            "Cpu": "4096",
+            "Memory": "10240",
+            "NetworkMode": "awsvpc",
+            "RequiresCompatibilities": [
+              "FARGATE"
+            ],
+            "ExecutionRoleArn": {
+              "Fn::GetAtt": [
+                "ECSExecutionRole",
+                "Arn"
+              ]
+            },
+            "TaskRoleArn": {
+              "Fn::GetAtt": [
+                "ECSExecutionRole",
+                "Arn"
+              ]
+            },
+            "ContainerDefinitions": [
+              {
+                "Name": "my-task-container",
+                "Image": {
+                  "Fn::Sub": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/daily-movers-shakers-scraper-prod:latest"
+                },
+                "Essential": true,
+                "Command": [
+                  "python3",
+                  "test.py"
+                ],
+                "LogConfiguration": {
+                  "LogDriver": "awslogs",
+                  "Options": {
+                    "awslogs-create-group": "true",
+                    "awslogs-group": "/ecs/daily-movers-shakers-scraper",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "ecs",
+                    "max-buffer-size": "25m"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "ECSExecutionRole": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [
+                      "ecs-tasks.amazonaws.com"
+                    ]
+                  },
+                  "Action": "sts:AssumeRole"
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": "ECSTaskExecutionRolePolicy",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "ecr:GetDownloadUrlForLayer",
+                        "ecr:BatchGetImage",
+                        "ecr:GetAuthorizationToken",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents",
+                        "logs:CreateLogGroup",
+                        "s3:GetObject",
+                        "s3:ListBucket"
+                      ],
+                      "Resource": "*"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless",
+    "initialServerlessConfig": {
+      "service": "daily-movers-shakers-scraper",
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      }
+    },
+    "appId": null,
+    "orgId": null,
+    "layers": {}
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/daily-movers-shakers-scraper/prod/1755545056256-2025-08-18T19:24:16.256Z",
+    "artifact": ""
+  }
+}

@@ -1,0 +1,7 @@
+playwright==1.43.0
+pandas==2.2.2
+numpy==1.26.4
+supabase==1.0.3
+fake-useragent==1.5.1
+boto3
+python-dotenv
