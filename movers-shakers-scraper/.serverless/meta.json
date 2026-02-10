@@ -1,6 +1,6 @@
 {
   "/Users/chapmanbeaird/Documents/PrimalScraper/movers-shakers-scraper/serverless.yml": {
-    "versionFramework": "4.18.0",
+    "versionFramework": "4.31.2",
     "servicePath": "/Users/chapmanbeaird/Documents/PrimalScraper/movers-shakers-scraper/serverless.yml",
     "serviceConfigFileName": "serverless.yml",
     "service": {
@@ -397,7 +397,9 @@
       "deploy"
     ],
     "options": {
-      "aws-profile": "default"
+      "aws-profile": "secondary",
+      "stage": "prod",
+      "region": "us-east-2"
     },
     "orgId": "ea6f6a09-9deb-40c1-b469-28dc78ea5af9",
     "orgName": "pirawna",
