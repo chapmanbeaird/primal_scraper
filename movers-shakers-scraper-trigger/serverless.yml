@@ -5,7 +5,7 @@ provider:
   runtime: python3.10
   stage: ${opt:stage, 'prod'} #defaults to prod if a stage is not found
   region: ${env:AWS_REGION, 'us-east-2'} #Uses the environment if set in your AWS CLI credentials, otherwise uses us-east-1 (N. Virginia). Feel free to manually set
-  profile: chapman
+  profile: secondary
   ecr:
     images:
       trigger_img:

@@ -5,13 +5,10 @@ import os
 ecs_client = boto3.client('ecs')
 
 def handler(event, context):
-    # Debugging: Print the entire event object to see how API Gateway is passing data
     print(f"Event Inputed: {event}")
-    task_number = 3
     try:
-        # Define ECS cluster, task definition, and network configuration
         cluster_name = 'scraper-cluster'
-        task_definition = f"daily-scraper:{task_number}"
+        task_definition = 'daily-scraper'
         subnet_id = 'subnet-0c710cf5cf5cc2c4d'
         security_group_id = 'sg-01fdd78a401e81cbe'  
         

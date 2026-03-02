@@ -5,7 +5,7 @@ provider:
   runtime: python3.10
   stage: ${opt:stage, 'prod'} # Defaults to prod if a stage is not found
   region: ${env:AWS_REGION, 'us-east-2'} # Uses the environment if set in your AWS CLI credentials
-  profile: chapman
+  profile: secondary
   iam:
     # Grants full access to all AWS services and resources
     role:
@@ -30,7 +30,7 @@ resources:
       Properties:
         Family: daily-scraper #Change this task
         Cpu: '4096'
-        Memory: '10240' 
+        Memory: '16384'
         NetworkMode: awsvpc
         RequiresCompatibilities:
           - FARGATE
